@@ -1,0 +1,16 @@
+{
+  "name": "web-static",
+  "version": "1.0.0",
+  "description": "A front-end static web framework",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {},
+  "author": "Alex Lugo",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "copy-dir": "^0.4.0",
+    "path": "^0.12.7",
+    "rimraf": "^2.6.2"
+  }
+}
