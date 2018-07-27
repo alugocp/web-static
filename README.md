@@ -9,16 +9,16 @@ npm install -g web-static
 ```
 
 ## Use
-###Starting a project
+### Starting a project
 ```
-cd **path/to/project**
+cd /path/to/project
 static init
 ```
 or
 ```
-static init **path/to/project**
+static init /path/to/project
 ```
-###Building a project
+### Building a project
 ```
 static build
 ```
