@@ -1,6 +1,6 @@
 {
   "name": "web-static",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A front-end framework for static web sites",
   "main": "index.js",
   "bin": {"static":"./static.sh"},
