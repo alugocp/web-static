@@ -1,12 +1,10 @@
 {
   "name": "web-static",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A front-end framework for static web sites",
   "main": "index.js",
-  "bin": "./index.js",
-  "scripts": {
-    "install":"npm install -g web-static"
-  },
+  "bin": {"static":"./index.js"},
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "https://github.com/alugocp/web-static.git"
