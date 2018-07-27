@@ -1,6 +1,6 @@
 {
   "name": "web-static",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A front-end framework for static web sites",
   "main": "index.js",
   "bin": {"static":"./index.js"},
