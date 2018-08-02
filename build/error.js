@@ -1,25 +1,45 @@
+const resolve=require("path").resolve;
+const colors=require("colors");
 const fs=require("fs");
 
 module.exports={
-  checkForDirectories:function(path){
-    var dirs=["components","pages","styles","scripts"];
-    for(var a=0;a<dirs.length;a++){
-      if(!fs.existsSync(path+"/"+dirs[a])){
-        console.log("Missing directory",dirs[a]);
+  check:{
+    exists:function(path){
+      if(!fs.existsSync(path)){
+        console.log("PATH ERROR".red,"Could not find path",path);
         process.exit();
+      }
+    },
+    noChildren:function(path,files){
+      for(var a=0;a<files.length;a++){
+        if(!fs.lstatSync(resolve(path,files[a])).isFile()){
+          console.log("PROJECT ERROR".red,"No folders allowed in",path);
+          process.exit();
+        }
+      }
+    },
+    filetype:function(path,files,type){
+      for(var a=0;a<files.length;a++){
+        var f=files[a];
+        if(f.length<type.length || f.substring(f.length-type.length)!=type){
+          console.log("PROJECT ERROR".red,"Only",type,"files allowed in",path);
+          process.exit();
+        }
       }
     }
   },
-  ensureNoDir:function(dir,files){
-    for(var a=0;a<files.length;a++){
-      if(files[a].includes("/")){
-        console.log("You're not supposed to have any subdirectories in",dir);
-        process.exit();
-      }
+  css:function(comp,extra){
+    console.log("CSS ERROR".red," in ",comp);
+    if(extra!=""){
+      console.log(extra);
     }
-  },
-  cssError:function(comp){
-    console.log("CSS error in component",comp);
     process.exit();
+  },
+  comp:function(extra){
+    console.log("COMPONENT ERROR".red,extra);
+    process.exit();
+  },
+  passed:function(){
+    console.log("BUILD SUCCESSFUL".green);
   }
 }

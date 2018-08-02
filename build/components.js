@@ -29,6 +29,7 @@ module.exports={
         return classes[b];
       }
     }
+    error.comp("No valid component name in ("+classes.join(", ")+")");
   },
 
   scopeify:function(path,comp,scripts,styles){
@@ -64,8 +65,10 @@ module.exports={
 function scopeifyScript(comp,data){
   var quotes=["\"","'","\\\""];
   var selector=".component."+comp+" ";
+  var double=selector+"."+comp;
   for(var a=0;a<quotes.length;a++){
     data=data.split("$("+quotes[a]).join("$("+quotes[a]+selector);
+    data=data.split("$("+quotes[a]+double).join("$("+quotes[a]+"."+comp);
   }
   return data;
 }
@@ -75,12 +78,14 @@ function scopeifyStyle(comp,data){
   var selector=".component."+comp+" ";
   while(cbOpen!=-1){
     var segment=data.substring(cbClose,cbOpen);
-    var first=segment.replace(/\s+/g,"").replace("}","")[0];
-    var insert=cbClose+segment.indexOf(first);
-    data=data.substring(0,insert)+selector+data.substring(insert);
+    var parsed=segment.replace(/\s+/g,"").replace("}","");
+    var insert=cbClose+segment.indexOf(parsed[0]);
+    if(parsed!="."+comp){
+      data=data.substring(0,insert)+selector+data.substring(insert);
+    }
     cbClose=data.indexOf("}",cbOpen);
     if(cbClose==-1){
-      error.cssError(comp);
+      error.css(comp,"Missing a close bracket");
     }
     cbOpen=data.indexOf("{",cbClose);
   }

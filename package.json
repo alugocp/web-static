@@ -1,9 +1,9 @@
 {
   "name": "web-static",
-  "version": "0.0.5",
+  "version": "1.0.0",
   "description": "A front-end framework for static web sites",
   "main": "index.js",
-  "bin": {"static":"./static.sh"},
+  "bin": {"static":"./static.js"},
   "scripts": {},
   "repository": {
     "type": "git",

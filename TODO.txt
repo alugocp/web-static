@@ -1,0 +1,2 @@
+- Add support for jQuery dynamic component creation
+- Create push command

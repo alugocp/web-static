@@ -1,158 +1,107 @@
 const comp=require("./components.js");
 const depend=require("./depend.js");
 const error=require("./error.js");
+const resolve=require("path").resolve;
 const copydir=require("copy-dir");
 const cheerio=require("cheerio");
 const rimraf=require("rimraf");
-const path=require("path");
 const fs=require("fs");
 
-// Main build process
-function buildProcess(path){
-  var components=fs.readdirSync(path+"/components");
-  var scripts=fs.readdirSync(path+"/scripts");
-  var styles=fs.readdirSync(path+"/styles");
-  var pages=fs.readdirSync(path+"/pages");
-  error.ensureNoDir("components",components);
-  error.ensureNoDir("scripts",scripts);
-  error.ensureNoDir("styles",styles);
-  error.ensureNoDir("pages",pages);
+module.exports=function(params){
+  const path=params.length==0?".":params[0];
+  error.check.exists(path);
 
-  // Setup build heirarchy
+  // Process folders
+  const build=resolve(path,".build");
+  rimraf(resolve(build,"*"),function(){
+    if(!fs.existsSync(build)) fs.mkdirSync(build);
+    buildProcess(path,build);
+  });
+}
+function buildProcess(path,build){
+  var components=getProjectFolder(resolve(path,"components"),".html");
+  var scripts=getProjectFolder(resolve(path,"scripts"),".js");
+  var styles=getProjectFolder(resolve(path,"styles"),".css");
+  var pages=getProjectFolder(resolve(path,"pages"),".html");
+
   pages.forEach(function(file){
-    var dir=addPageToBuild(file);
-    if(!fs.existsSync(dir)){
-      fs.mkdirSync(dir);
-    }
-    var $=cheerio.load(
-      fs.readFileSync(path+"/pages/"+file)
-    );
+    var dir=addPageToBuild(build,file);
+    if(!fs.existsSync(dir)) fs.mkdirSync(dir);
+    var $=cheerio.load(fs.readFileSync(resolve(path,"pages",file)));
 
     $(".component").each(function(){
       comp.getDependencies(
         path,comp.getClass(components,$(this).attr("class")),scripts,styles
       ).forEach(function(d){
-        depend.addFile(dir,d);
+        depend.addFile(build,dir,d);
       });
     });
-    $("script").each(function(){
-      if(scripts.includes($(this).attr("src"))){
-        depend.addFile(dir,$(this).attr("src"));
-      }
-    });
     $("link[rel=stylesheet]").each(function(){
-      if(styles.includes($(this).attr("href"))){
-        depend.addFile(dir,$(this).attr("href"));
-      }
+      if(styles.includes($(this).attr("href"))) depend.addFile(build,dir,$(this).attr("href"));
+    });
+    $("script").each(function(){
+      if(scripts.includes($(this).attr("src"))) depend.addFile(build,dir,$(this).attr("src"));
     });
   });
 
-  // Copy non-html files to correct filespaces
   depend.consolidate();
-  scripts.forEach(function(file){
-    fs.copyFileSync(
-      path+"/scripts/"+file,
-      build+"/"+depend.getPath(file)
-    );
-  });
-  styles.forEach(function(file){
-    fs.copyFileSync(
-      path+"/styles/"+file,
-      build+depend.getPath(file)+"/"+file
-    );
-  });
+  buildProjectFolder(path,build,"scripts",scripts);
+  buildProjectFolder(path,build,"styles",styles);
 
-  // Process html
   pages.forEach(function(file){
-    var dir=getPageDir(file);
-    var $=cheerio.load(
-      fs.readFileSync(path+"/pages/"+file)
-    );
+    var $=cheerio.load(fs.readFileSync(resolve(path,"pages",file)));
+    $("head").prepend("<!-- Built with WebStatic v1 -->");
     $(".component").each(function(){
       $(this).html(comp.scopeify(
         path,comp.getClass(components,$(this).attr("class")),scripts,styles
       ));
     });
 
-    var depth=getDepth(file);
+    var depth=(file=="index.html"?0:1);
     $("*").each(function(){
       var src=$(this).attr("src");
-      if(src!=undefined){
-        var d=depend.getFileDepth(src);
-        $(this).attr("src","../".repeat(depth-d)+src);
-      }
       var href=$(this).attr("href");
-      if(href!=undefined && !href.includes("://")){
-        var d=depend.getFileDepth(href);
-        $(this).attr("href","../".repeat(depth-d)+href);
-      }
+      if(src!=undefined) $(this).attr("src","../".repeat(depth-depend.getFileDepth(src))+src);
+      if(!$(this).is("a") && href!=undefined && !href.includes("://")) $(this).attr("href","../".repeat(depth-depend.getFileDepth(href))+href);
     });
-
-    fs.writeFileSync(dir+"/index.html",$.html());
+    fs.writeFileSync(resolve(build,depth==0?"":depend.getPath(file),"index.html"),$.html());
   });
 
-  // Copy other folders
   fs.readdirSync(path).forEach(function(obj){
-    if(!fs.lstatSync(obj).isFile() && !(obj=="pages" || obj=="scripts" || obj=="styles" || obj=="components" || obj=="build")){
-      if(!fs.existsSync(build+"/"+obj)){
-        fs.mkdirSync(build+"/"+obj);
-      }
-      copydir.sync(path+"/"+obj,build+"/"+obj);
+    var obuild=resolve(build,obj);
+    var opath=resolve(path,obj);
+    if(fs.lstatSync(opath).isFile()){
+      fs.copyFileSync(opath,obuild);
+    }else if(!(obj=="pages" || obj=="scripts" || obj=="styles" || obj=="components" || obj==".build")){
+      if(!fs.existsSync(obuild)) fs.mkdirSync(obuild);
+      copydir.sync(opath,obuild);
     }
   });
+  error.passed();
 }
-module.exports=function(params){
-  // Load working directory
-  const path=params.length==0?".":params[0];
-  if(path!="." && !fs.existsSync(path)){
-    console.log("Cannot find project path");
-    process.exit();
-  }
 
-  // Process folders
-  build=path+"/build";
-  error.checkForDirectories(path);
-  rimraf(build,function(){
-    fs.mkdirSync(build);
-    buildProcess(path);
+function getProjectFolder(dirpath,type){
+  var files=fs.existsSync(dirpath)?fs.readdirSync(dirpath):[];
+  error.check.noChildren(dirpath,files);
+  error.check.filetype(dirpath,files,type);
+  return files;
+}
+function buildProjectFolder(path,build,dir,files){
+  files.forEach(function(file){
+    fs.copyFileSync(
+      resolve(path,dir,file),
+      resolve.apply(null,[build].concat(depend.getPath(file)).concat([file]))
+    );
   });
 }
-
-// Build folder population
-var build;
-function addPageToBuild(file){
-  var dir=file.split(".");
-  dir=dir.slice(0,dir.length-1);
-  if(dir.length==1 && dir[0]=="index"){
+function addPageToBuild(build,file){
+  var dir=file.substring(0,file.length-5);
+  if(dir=="index"){
     depend.addPage([]);
     return build;
   }
   depend.addPage(dir);
-  dir=build+"/"+dir.join("/");
-  if(!fs.existsSync(dir)){
-    fs.mkdirSync(dir);
-  }
+  dir=resolve(build,dir);
+  if(!fs.existsSync(dir)) fs.mkdirSync(dir);
   return dir;
 }
-function getPageDir(file){
-  var dir=file.split(".");
-  return dir.length==2 && dir[0]=="index"?build:
-    build+"/"+dir.slice(0,dir.length-1).join("/");
-}
-
-// Miscellaneous
-function getDepth(file){
-  var pieces=file.split(".");
-  if(pieces.length==2 && pieces[0]=="index"){
-    return 0;
-  }
-  return pieces.length-1;
-}
-
-/* Build process:
-
-for each page in pages
-  import components
-  scope-ify component references
-
-*/
