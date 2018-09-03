@@ -5,6 +5,7 @@ const resolve=require("path").resolve;
 const copydir=require("copy-dir");
 const cheerio=require("cheerio");
 const rimraf=require("rimraf");
+const lib=require("../lib.js");
 const fs=require("fs");
 
 module.exports=function(params){
@@ -72,7 +73,7 @@ function buildProcess(path,build){
     var opath=resolve(path,obj);
     if(fs.lstatSync(opath).isFile()){
       fs.copyFileSync(opath,obuild);
-    }else if(!(obj=="pages" || obj=="scripts" || obj=="styles" || obj=="components" || obj==".build")){
+    }else if(!(obj=="pages" || obj=="scripts" || obj=="styles" || obj=="components" || lib.ignoreInBuild(obj))){
       if(!fs.existsSync(obuild)) fs.mkdirSync(obuild);
       copydir.sync(opath,obuild);
     }
@@ -88,9 +89,10 @@ function getProjectFolder(dirpath,type){
 }
 function buildProjectFolder(path,build,dir,files){
   files.forEach(function(file){
-    fs.copyFileSync(
+    var dest=depend.getPath(file);
+    if(dest) fs.copyFileSync(
       resolve(path,dir,file),
-      resolve.apply(null,[build].concat(depend.getPath(file)).concat([file]))
+      resolve.apply(null,[build].concat(dest).concat([file]))
     );
   });
 }

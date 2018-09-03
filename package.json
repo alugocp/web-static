@@ -1,14 +1,17 @@
 {
   "name": "web-static",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "A front-end framework for static web sites",
   "main": "index.js",
-  "bin": {"static":"./static.js"},
+  "bin": {
+    "static":"./static.js"
+  },
   "scripts": {},
   "repository": {
     "type": "git",
     "url": "https://github.com/alugocp/web-static.git"
   },
+  "homepage":"https://alugocp.github.io/ws-page",
   "author": {
     "name": "Alex Lugo",
     "email": "alugocp@gmail.com",

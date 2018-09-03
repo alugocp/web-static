@@ -50,7 +50,6 @@ function getPathAuxiliary(folder,file){
       for(var b=0;b<result.length;b++){
         value.push(result[b]);
       }
-      console.log(value);
       return value;
     }
   }
