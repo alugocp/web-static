@@ -40,6 +40,6 @@ module.exports={
     process.exit();
   },
   passed:function(){
-    console.log("BUILD SUCCESSFUL".green);
+    process.stdout.write("\rBUILD SUCCESSFUL".green);
   }
 }

@@ -8,7 +8,7 @@ const rimraf=require("rimraf");
 const lib=require("../lib.js");
 const fs=require("fs");
 
-module.exports=function(params){
+module.exports=function(params,newline=true){
   const path=params.length==0?".":params[0];
   error.check.exists(path);
 
@@ -16,10 +16,11 @@ module.exports=function(params){
   const build=resolve(path,".build");
   rimraf(resolve(build,"*"),function(){
     if(!fs.existsSync(build)) fs.mkdirSync(build);
-    buildProcess(path,build);
+    buildProcess(path,build,newline);
   });
 }
-function buildProcess(path,build){
+function buildProcess(path,build,newline){
+  process.stdout.write("\rbuilding...");
   var components=getProjectFolder(resolve(path,"components"),".html");
   var scripts=getProjectFolder(resolve(path,"scripts"),".js");
   var styles=getProjectFolder(resolve(path,"styles"),".css");
@@ -31,11 +32,12 @@ function buildProcess(path,build){
     var $=cheerio.load(fs.readFileSync(resolve(path,"pages",file)));
 
     $(".component").each(function(){
-      comp.getDependencies(
-        path,comp.getClass(components,$(this).attr("class")),scripts,styles
-      ).forEach(function(d){
-        depend.addFile(build,dir,d);
-      });
+      var compclass=comp.getClass(components,$(this).attr("class"));
+      if(compclass!=null){
+        comp.getDependencies(path,compclass,scripts,styles).forEach(function(d){
+          depend.addFile(build,dir,d);
+        });
+      }
     });
     $("link[rel=stylesheet]").each(function(){
       if(styles.includes($(this).attr("href"))) depend.addFile(build,dir,$(this).attr("href"));
@@ -53,9 +55,10 @@ function buildProcess(path,build){
     var $=cheerio.load(fs.readFileSync(resolve(path,"pages",file)));
     $("head").prepend("<!-- Built with WebStatic v1 -->");
     $(".component").each(function(){
-      $(this).html(comp.scopeify(
-        path,comp.getClass(components,$(this).attr("class")),scripts,styles
-      ));
+      var compclass=comp.getClass(components,$(this).attr("class"));
+      if(compclass!=null){
+        $(this).html(comp.scopeify(path,compclass,scripts,styles));
+      }
     });
 
     var depth=(file=="index.html"?0:1);
@@ -79,6 +82,7 @@ function buildProcess(path,build){
     }
   });
   error.passed();
+  if(newline) process.stdout.write("\n");
 }
 
 function getProjectFolder(dirpath,type){

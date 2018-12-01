@@ -5,17 +5,17 @@ const open=require("./open/open.js");
 const auto=require("./auto/auto.js");
 
 function isHelp(f){
-  return f=="-h" || f=="--h" || f=="-help" || f=="--help" || f=="help";
+  return f.match(/\-(\-)?h(elp)?/) || f=="help";
 }
 
 // Check for command
 if(process.argv.length==2 || isHelp(process.argv[2])){
-  console.log("Usage: static (init|build|open|push)");
-  console.log(" init:\tInitializes the target or current directory as a WebStatic front-end project");
-  console.log(" build:\tBuilds the target or current WebStatic front-end project");
-  console.log(" auto:\tStarts a build daemon for the current or target directory");
-  console.log(" open:\tOpens the target or current WebStatic project in your default browser");
-  console.log(" push:\tUploads the target or current WebStatic project's build to GitHub");
+  console.log("Usage: static (init|build|auto|open|push) [path]");
+  console.log(" init:\tInitializes the path or current directory as a WebStatic front-end project");
+  console.log(" build:\tBuilds the path or current WebStatic front-end project");
+  console.log(" auto:\tStarts a build daemon for the path or current directory");
+  console.log(" open:\tOpens the path or current WebStatic project in your default browser");
+  console.log(" push:\tUploads the path or current WebStatic project's build to GitHub");
   process.exit();
 }
 const command=process.argv[2];
@@ -26,13 +26,10 @@ if(command=="init") init(params);
 else if(command=="build") build(params);
 else if(command=="open") open(params);
 else if(command=="auto") auto(params);
-else if(["push","decommit"].includes(command)){
+else if(command=="push"){
 
   const GitCommand=require("./enabled-git/git.js");
   const git=new GitCommand(params);
-  if(command=="decommit"){
-    console.log("Please don't use the","decommit".green,"command, it's unstable and soon to be deprecated");
-    //git.decommit();
-  }else if(command=="push") git.push();
+  git.push();
 
-}else console.log("Command '"+command+"' not found");
+}else console.log("WebStatic command '"+command+"' not found");

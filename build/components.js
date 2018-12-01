@@ -1,3 +1,4 @@
+const csstree=require("css-tree");
 const error=require("./error.js");
 const cheerio=require("cheerio");
 const fs=require("fs");
@@ -29,7 +30,8 @@ module.exports={
         return classes[b];
       }
     }
-    error.comp("No valid component name in ("+classes.join(", ")+")");
+    return null;
+    //error.comp("No valid component name in ("+classes.join(", ")+")");
   },
 
   scopeify:function(path,comp,scripts,styles){
@@ -72,6 +74,23 @@ function scopeifyScript(comp,data){
   }
   return data;
 }
+/*function scopeifyStyle(comp,data){
+  var selector=".component."+comp+" ";
+  var ast=csstree.parse(data);
+  csstree.walk(ast,{enter:function(node){
+    if(node.type=="SelectorList"){*/
+      /*node.children.head={
+        prev:null,
+        next:node.children.head,
+        data:{type:"ClassSelector",loc:null,name:"Hi"}
+      };
+      node.children.head.next.prev=node.children.head;
+      node.children.unshift(node.children.head);*/
+      /*console.log(node);
+    }
+  }});
+  return csstree.generate(ast);
+}*/
 function scopeifyStyle(comp,data){
   var cbClose=0;
   var cbOpen=data.indexOf("{");

@@ -30,7 +30,7 @@ module.exports=async function(params){
   while(true){
     newTree=checkFolder(path);
     if(oldTree){
-      if(!isSame(newTree,oldTree)) build(params);
+      if(!isSame(newTree,oldTree)) build(params,newline=false);
       await new Promise(accept => setTimeout(accept,3000));
     }
     oldTree=newTree;
