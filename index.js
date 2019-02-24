@@ -15,7 +15,7 @@ if(process.argv.length==2 || isHelp(process.argv[2])){
   console.log(" build:\tBuilds the path or current WebStatic front-end project");
   console.log(" auto:\tStarts a build daemon for the path or current directory");
   console.log(" open:\tOpens the path or current WebStatic project in your default browser");
-  console.log(" push:\tUploads the path or current WebStatic project's build to GitHub");
+  console.log(" push [path] [--branch b]:\tUploads the path or current WebStatic project's build to GitHub on master or branch b");
   process.exit();
 }
 const command=process.argv[2];

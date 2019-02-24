@@ -37,3 +37,5 @@ After running the build command, open up build/index.html in your browser to acc
 ## Authors
 * **Alex Lugo** - *Everything* - [website](http://alexlugo.net)
 * *That's all*
+
+If you like this framework, go ahead and subscribe to my [YouTube](https://www.youtube.com/channel/UCe076uBvUGXWHxk_v0TqdJQ) channel!
